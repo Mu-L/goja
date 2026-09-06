@@ -1673,7 +1673,9 @@ func (r *Runtime) uint8ArrayProto_toBase64(call FunctionCall) Value {
 	enc := r.parseToBase64Encoding(call.Argument(0))
 	// GetUint8ArrayBytes runs after the option getters, which may have detached the buffer.
 	toEnc := r.getUint8ArrayBytes(ta)
-	return asciiString(enc.EncodeToString(toEnc))
+	buf := make([]byte, enc.EncodedLen(len(toEnc)))
+	enc.Encode(buf, toEnc)
+	return asciiString(unsafe.String(unsafe.SliceData(buf), len(buf)))
 }
 
 // parseToBase64Encoding reads the "alphabet" and "omitPadding" options of
@@ -1723,7 +1725,9 @@ func (r *Runtime) parseToBase64Encoding(options Value) *stdbase64.Encoding {
 func (r *Runtime) uint8ArrayProto_toHex(call FunctionCall) Value {
 	ta := r.validateUint8Array(call.This)
 	toEnc := r.getUint8ArrayBytes(ta)
-	return asciiString(stdhex.EncodeToString(toEnc))
+	buf := make([]byte, stdhex.EncodedLen(len(toEnc)))
+	stdhex.Encode(buf, toEnc)
+	return asciiString(unsafe.String(unsafe.SliceData(buf), len(buf)))
 }
 
 func (r *Runtime) uint8ArrayProto_setFromHex(call FunctionCall) Value {
